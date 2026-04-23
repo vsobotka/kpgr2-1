@@ -1,6 +1,7 @@
 package model;
 
 import transforms.Col;
+import transforms.Mat4;
 import transforms.Point3D;
 
 public class Vertex implements Vectorizable<Vertex> {
@@ -44,6 +45,10 @@ public class Vertex implements Vectorizable<Vertex> {
         return position.getZ();
     }
 
+    public double getW() {
+        return position.getW();
+    }
+
     public Col getColor() {
         return color;
     }
@@ -56,5 +61,13 @@ public class Vertex implements Vectorizable<Vertex> {
     @Override
     public Vertex add(Vertex v) {
         return new Vertex(position.add(v.getPosition()), color.add(v.getColor()));
+    }
+
+    public Vertex transform(Mat4 matrix) {
+        return new Vertex(this.position.mul(matrix), this.color);
+    }
+
+    public Vertex dehomog() {
+        return new Vertex(this.position.mul(1 / this.position.getW()), this.color);
     }
 }

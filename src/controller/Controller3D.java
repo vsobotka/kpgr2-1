@@ -1,5 +1,6 @@
 package controller;
 
+import config.Config;
 import raster.ZBuffer;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerGraphics;
@@ -17,16 +18,38 @@ public class Controller3D {
     private final LineRasterizer lineRasterizer;
     private final TriangleRasterizer triangleRasterizer;
     private final RendererSolid renderer;
+    private final Projection projection = Projection.PERSPECTIVE;
 
-    // Solid
     private final Solid arrow;
+    private final Mat4 perspProj, orthoProj;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
         this.zBuffer = new ZBuffer(panel.getRaster());
         this.lineRasterizer = new LineRasterizerGraphics(panel.getRaster());
         this.triangleRasterizer = new TriangleRasterizer(zBuffer);
-        this.renderer = new RendererSolid(lineRasterizer, triangleRasterizer);
+
+        double fov = Math.toRadians(Config.FOV_DEGREES);
+
+        perspProj = new Mat4PerspRH(
+                fov,
+                panel.getRaster().getHeight() / (double) panel.getRaster().getWidth(),
+                Config.NEAR_CLIP,
+                Config.FAR_CLIP
+        );
+
+        double h = 6 * Math.tan(fov / 2);
+        double w = h * panel.getRaster().getWidth() / (double) panel.getRaster().getHeight();
+
+        orthoProj = new Mat4OrthoRH(
+                w, h, Config.NEAR_CLIP, Config.FAR_CLIP
+        );
+        Mat4 view = createCamera().getViewMatrix();
+        Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
+        this.renderer = new RendererSolid(
+                lineRasterizer, triangleRasterizer, view, proj,
+                panel.getRaster().getWidth(), panel.getRaster().getHeight()
+        );
 
         this.arrow = new Arrow();
 
@@ -42,18 +65,21 @@ public class Controller3D {
     private void drawScene() {
         zBuffer.clear();
 
-//        zBuffer.setPixelWithZTest(50, 50, 0.5, new Col(0xff0000)); // 0.5
-//        zBuffer.setPixelWithZTest(50, 50, 0.7, new Col(0x00ff00)); // 0.7
-
-
-//        triangleRasterizer.rasterize(
-//            new Vertex(400, 0, 0.5, new Col(0xff0000)),
-//            new Vertex(0, 300, 0.5, new Col(0x00ff00)),
-//            new Vertex(799, 599, 0.5, new Col(0x0000ff))
-//        );
-
         renderer.render(arrow);
 
         panel.repaint();
+    }
+
+    private Camera createCamera() {
+        return new Camera()
+                .withPosition(new Vec3D(Config.CAMERA_INIT_X, Config.CAMERA_INIT_Y, Config.CAMERA_INIT_Z))
+                .withAzimuth(Math.toRadians(Config.CAMERA_INIT_AZIMUTH)) // - -> look right, + -> look left
+                .withZenith(Math.toRadians(Config.CAMERA_INIT_ZENITH)) // - -> look down, + -> look up
+                .withFirstPerson(true);
+    }
+
+    private enum Projection {
+        ORTHOGRAPHIC,
+        PERSPECTIVE
     }
 }

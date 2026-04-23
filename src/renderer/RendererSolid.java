@@ -5,17 +5,33 @@ import model.Vertex;
 import rasterize.LineRasterizer;
 import rasterize.TriangleRasterizer;
 import solid.Solid;
+import transforms.Mat4;
+import transforms.Point3D;
+import util.Lerp;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RendererSolid {
-    private LineRasterizer lineRasterizer;
-    private TriangleRasterizer triangleRasterizer;
+    private final LineRasterizer lineRasterizer;
+    private final TriangleRasterizer triangleRasterizer;
+    private final Mat4 view, proj;
+    private final int width, height;
+    private final Lerp<Vertex> lerp = new Lerp<>();
 
-    public RendererSolid(LineRasterizer lineRasterizer, TriangleRasterizer triangleRasterizer) {
+    public RendererSolid(LineRasterizer lineRasterizer, TriangleRasterizer triangleRasterizer,
+                         Mat4 view, Mat4 proj, int width, int height) {
         this.lineRasterizer = lineRasterizer;
         this.triangleRasterizer = triangleRasterizer;
+        this.view = view;
+        this.proj = proj;
+        this.width = width;
+        this.height = height;
     }
 
     public void render(Solid solid) {
+        Mat4 mvp = solid.getModel().mul(view).mul(proj);
+
         for (Part part : solid.getPartBuffer()) {
             switch (part.getType()) {
                 case LINES:
@@ -24,19 +40,20 @@ public class RendererSolid {
                         int indexA = solid.getIndexBuffer().get(index++);
                         int indexB = solid.getIndexBuffer().get(index++);
 
-                        Vertex a = solid.getVertexBuffer().get(indexA);
-                        Vertex b = solid.getVertexBuffer().get(indexB);
+                        Vertex a = solid.getVertexBuffer().get(indexA).transform(mvp);
+                        Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
 
-                        // TODO: pronásobit MVP maticí
-                        // TODO: ořezání
-                        // TODO: dehomogenizace
-                        // TODO: transformace do okna obrazovky
+                        Vertex[] clipped = clipLineNear(a, b);
+                        if (clipped == null) continue;
+
+                        Vertex sa = toScreen(clipped[0].dehomog());
+                        Vertex sb = toScreen(clipped[1].dehomog());
 
                         lineRasterizer.rasterize(
-                                (int) Math.round(a.getX()),
-                                (int) Math.round(a.getY()),
-                                (int) Math.round(b.getX()),
-                                (int) Math.round(b.getY())
+                                (int) Math.round(sa.getX()),
+                                (int) Math.round(sa.getY()),
+                                (int) Math.round(sb.getX()),
+                                (int) Math.round(sb.getY())
                         );
                     }
                     break;
@@ -47,19 +64,66 @@ public class RendererSolid {
                         int indexB = solid.getIndexBuffer().get(index++);
                         int indexC = solid.getIndexBuffer().get(index++);
 
-                        Vertex a = solid.getVertexBuffer().get(indexA);
-                        Vertex b = solid.getVertexBuffer().get(indexB);
-                        Vertex c = solid.getVertexBuffer().get(indexC);
+                        Vertex a = solid.getVertexBuffer().get(indexA).transform(mvp);
+                        Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
+                        Vertex c = solid.getVertexBuffer().get(indexC).transform(mvp);
 
-                        // TODO: pronásobit MVP maticí
-                        // TODO: ořezání
-                        // TODO: dehomogenizace
-                        // TODO: transformace do okna obrazovky
+                        List<Vertex> clipped = clipTriangleNear(a, b, c);
+                        if (clipped.size() < 3) continue;
 
-                        triangleRasterizer.rasterize(a, b, c);
+                        List<Vertex> screen = new ArrayList<>(clipped.size());
+                        for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
+
+                        // fan-triangulate (clipped polygon has 3 or 4 vertices)
+                        for (int k = 1; k < screen.size() - 1; k++) {
+                            triangleRasterizer.rasterize(screen.get(0), screen.get(k), screen.get(k + 1));
+                        }
                     }
                     break;
             }
         }
+    }
+
+    private Vertex[] clipLineNear(Vertex a, Vertex b) {
+        boolean aIn = a.getZ() >= 0;
+        boolean bIn = b.getZ() >= 0;
+        if (aIn && bIn) return new Vertex[]{a, b};
+        if (!aIn && !bIn) return null;
+        if (aIn) {
+            double t = a.getZ() / (a.getZ() - b.getZ());
+            return new Vertex[]{a, lerp.lerp(a, b, t)};
+        } else {
+            double t = b.getZ() / (b.getZ() - a.getZ());
+            return new Vertex[]{lerp.lerp(b, a, t), b};
+        }
+    }
+
+    private List<Vertex> clipTriangleNear(Vertex a, Vertex b, Vertex c) {
+        List<Vertex> input = List.of(a, b, c);
+        List<Vertex> output = new ArrayList<>(4);
+        int n = input.size();
+        for (int i = 0; i < n; i++) {
+            Vertex s = input.get(i);
+            Vertex e = input.get((i + 1) % n);
+            boolean sIn = s.getZ() >= 0;
+            boolean eIn = e.getZ() >= 0;
+            if (eIn) {
+                if (!sIn) {
+                    double t = s.getZ() / (s.getZ() - e.getZ());
+                    output.add(lerp.lerp(s, e, t));
+                }
+                output.add(e);
+            } else if (sIn) {
+                double t = s.getZ() / (s.getZ() - e.getZ());
+                output.add(lerp.lerp(s, e, t));
+            }
+        }
+        return output;
+    }
+
+    private Vertex toScreen(Vertex v) {
+        double x = (v.getX() + 1) * 0.5 * width;
+        double y = (1 - v.getY()) * 0.5 * height;
+        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor());
     }
 }
