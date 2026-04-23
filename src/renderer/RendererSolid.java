@@ -15,7 +15,8 @@ import java.util.List;
 public class RendererSolid {
     private final LineRasterizer lineRasterizer;
     private final TriangleRasterizer triangleRasterizer;
-    private final Mat4 view, proj;
+    private Mat4 view;
+    private final Mat4 proj;
     private final int width, height;
     private final Lerp<Vertex> lerp = new Lerp<>();
 
@@ -27,6 +28,10 @@ public class RendererSolid {
         this.proj = proj;
         this.width = width;
         this.height = height;
+    }
+
+    public void setView(Mat4 view) {
+        this.view = view;
     }
 
     public void render(Solid solid) {

@@ -12,6 +12,11 @@ import solid.Sphere;
 import transforms.*;
 import view.Panel;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 
 public class Controller3D {
     private final Panel panel;
@@ -24,6 +29,7 @@ public class Controller3D {
     private final Solid arrow;
     private final Solid sphere;
     private final Mat4 perspProj, orthoProj;
+    private Camera camera;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -46,7 +52,8 @@ public class Controller3D {
         orthoProj = new Mat4OrthoRH(
                 w, h, Config.NEAR_CLIP, Config.FAR_CLIP
         );
-        Mat4 view = createCamera().getViewMatrix();
+        this.camera = createCamera();
+        Mat4 view = this.camera.getViewMatrix();
         Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
         this.renderer = new RendererSolid(
                 lineRasterizer, triangleRasterizer, view, proj,
@@ -62,7 +69,67 @@ public class Controller3D {
     }
 
     private void initListeners() {
-        // TODO: Inicializace listenerů např. pohyb kamerou
+        panel.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                boolean redraw = false;
+
+                if (e.getKeyCode() == KeyEvent.VK_W) {
+                    camera = camera.forward(Config.CAMERA_SPEED);
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_S) {
+                    camera = camera.backward(Config.CAMERA_SPEED);
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_A) {
+                    camera = camera.left(Config.CAMERA_SPEED);
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_D) {
+                    camera = camera.right(Config.CAMERA_SPEED);
+                    redraw = true;
+                }
+
+                if (redraw) {
+                    renderer.setView(camera.getViewMatrix());
+                    drawScene();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+
+        MouseAdapter mouseAdapter = new MouseAdapter() {
+            private int lastX, lastY;
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                lastX = e.getX();
+                lastY = e.getY();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                int dx = e.getX() - lastX;
+                int dy = e.getY() - lastY;
+                lastX = e.getX();
+                lastY = e.getY();
+
+                camera = camera
+                        .addAzimuth(-dx * Config.MOUSE_SENSITIVITY)
+                        .addZenith(-dy * Config.MOUSE_SENSITIVITY);
+                renderer.setView(camera.getViewMatrix());
+                drawScene();
+            }
+        };
+        panel.addMouseListener(mouseAdapter);
+        panel.addMouseMotionListener(mouseAdapter);
     }
 
     private void drawScene() {
