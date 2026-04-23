@@ -44,7 +44,7 @@ public class DepthBuffer implements Raster<Double>{
     public void clear() {
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                buffer[i][j] = 0;
+                buffer[i][j] = 1;
             }
         }
     }
