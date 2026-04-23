@@ -40,8 +40,7 @@ public class Controller3D {
     }
 
     private void drawScene() {
-        panel.getRaster().clear();
-        // TODO: zbuffer.clear()
+        zBuffer.clear();
 
 //        zBuffer.setPixelWithZTest(50, 50, 0.5, new Col(0xff0000)); // 0.5
 //        zBuffer.setPixelWithZTest(50, 50, 0.7, new Col(0x00ff00)); // 0.7
