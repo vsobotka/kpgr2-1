@@ -16,13 +16,19 @@ public class RasterBufferedImage implements Raster<Col> {
 
     @Override
     public void setValue(int x, int y, Col color) {
-        // TODO: ošetřit zápis mimo raster
+        if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
+            return;
+        }
+
         image.setRGB(x, y, color.getRGB());
     }
 
     @Override
     public Optional<Col> getValue(int x, int y) {
-        // TODO: ošetřit get mimo raster
+        if (x < 0 || x >= image.getWidth() || y < 0 || y >= image.getHeight()) {
+            return Optional.empty();
+        }
+
         return Optional.of(new Col(image.getRGB(x, y)));
     }
 
