@@ -8,6 +8,7 @@ import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
 import solid.Arrow;
 import solid.Solid;
+import solid.Sphere;
 import transforms.*;
 import view.Panel;
 
@@ -21,6 +22,7 @@ public class Controller3D {
     private final Projection projection = Projection.PERSPECTIVE;
 
     private final Solid arrow;
+    private final Solid sphere;
     private final Mat4 perspProj, orthoProj;
 
     public Controller3D(Panel panel) {
@@ -52,6 +54,7 @@ public class Controller3D {
         );
 
         this.arrow = new Arrow();
+        this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
 
         initListeners();
 
@@ -66,6 +69,7 @@ public class Controller3D {
         zBuffer.clear();
 
         renderer.render(arrow);
+        renderer.render(sphere);
 
         panel.repaint();
     }
