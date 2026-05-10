@@ -9,8 +9,8 @@ import transforms.Vec2D;
 import transforms.Vec3D;
 
 public class Sphere extends Solid {
-    private static final int M = 20;
-    private static final int N = 10;
+    private static final int M = 50;
+    private static final int N = 30;
 
     public Sphere(Vec3D center, double r) {
         int stride = M + 1;
