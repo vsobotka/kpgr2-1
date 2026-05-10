@@ -68,7 +68,7 @@ public class TriangleRasterizer {
             double t = dx == 0 ? 0 : (x - x1.getX()) / dx;
             Vertex pixel = lerp.lerp(x1, x2, t);
 
-            double w = 1.0 / pixel.getW();
+            double w = 1.0 / pixel.getOne();
             Vertex corrected = new Vertex(
                     pixel.getPosition(),
                     pixel.getColor().mul(w),
