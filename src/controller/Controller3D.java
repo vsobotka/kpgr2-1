@@ -7,7 +7,6 @@ import rasterize.LineRasterizerGraphics;
 import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
 import solid.Arrow;
-import solid.RenderMode;
 import solid.Solid;
 import solid.Sphere;
 import transforms.*;
@@ -20,6 +19,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 
 public class Controller3D {
@@ -31,10 +31,13 @@ public class Controller3D {
     private final Projection projection = Projection.PERSPECTIVE;
 
     private final Arrow arrowX, arrowY, arrowZ;
-    private final Solid sphere;
+    private final Solid sphere, sphere2;
     private final Mat4 perspProj, orthoProj;
     private final Mat4 hudProj;
     private Camera camera;
+
+    private ArrayList<Solid> selectableSolids = new ArrayList<Solid>();
+    private Integer selectedSolidIndex = 0;
 
     public Controller3D(Panel panel) {
         this.panel = panel;
@@ -74,6 +77,10 @@ public class Controller3D {
         this.arrowZ.setModel(new Mat4RotY(Math.toRadians(-90)));
 
         this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
+        this.sphere2 = new Sphere(new Vec3D(2, 2, 2), 0.5);
+
+        selectableSolids.add(sphere);
+        selectableSolids.add(sphere2);
 
         initListeners();
 
@@ -105,6 +112,9 @@ public class Controller3D {
                     redraw = true;
                 } else if (e.getKeyCode() == KeyEvent.VK_M) {
                     renderer.toggleRenderMode();
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                    selectedSolidIndex = (selectedSolidIndex + 1) % selectableSolids.size();
                     redraw = true;
                 }
 
@@ -150,7 +160,9 @@ public class Controller3D {
     private void drawScene() {
         zBuffer.clear();
 
-        renderer.render(sphere);
+        for (Solid solid : selectableSolids) {
+            renderer.render(solid);
+        }
 
         Mat4 gView = hudView();
         renderArrowAxis(arrowX, gView);
