@@ -104,7 +104,7 @@ public class Controller3D {
                     camera = camera.right(Config.CAMERA_SPEED);
                     redraw = true;
                 } else if (e.getKeyCode() == KeyEvent.VK_M) {
-                    sphere.setRenderMode(sphere.getRenderMode() == RenderMode.FILL ? RenderMode.WIRE : RenderMode.FILL);
+                    renderer.toggleRenderMode();
                     redraw = true;
                 }
 

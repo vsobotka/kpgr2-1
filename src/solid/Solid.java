@@ -14,7 +14,6 @@ public abstract class Solid {
     protected final List<Integer> indexBuffer = new ArrayList<>();
     protected final List<Part> partBuffer = new ArrayList<>();
     protected Mat4 model = new Mat4Identity();
-    protected RenderMode renderMode = RenderMode.FILL;
 
     public List<Vertex> getVertexBuffer() {
         return vertexBuffer;
@@ -38,13 +37,5 @@ public abstract class Solid {
 
     public void setModel(Mat4 model) {
         this.model = model;
-    }
-
-    public RenderMode getRenderMode() {
-        return renderMode;
-    }
-
-    public void setRenderMode(RenderMode renderMode) {
-        this.renderMode = renderMode;
     }
 }

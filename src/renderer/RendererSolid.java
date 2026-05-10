@@ -20,6 +20,7 @@ public class RendererSolid {
     private final Mat4 proj;
     private final int width, height;
     private final Lerp<Vertex> lerp = new Lerp<>();
+    private RenderMode renderMode = RenderMode.FILL;
 
     public RendererSolid(LineRasterizer lineRasterizer, TriangleRasterizer triangleRasterizer,
                          Mat4 view, Mat4 proj, int width, int height) {
@@ -35,6 +36,14 @@ public class RendererSolid {
         this.view = view;
     }
 
+    public RenderMode getRenderMode() {
+        return renderMode;
+    }
+
+    public void toggleRenderMode() {
+        renderMode = renderMode == RenderMode.FILL ? RenderMode.WIRE : RenderMode.FILL;
+    }
+
     public void render(Solid solid) {
         renderInternal(solid, solid.getModel().mul(view).mul(proj));
     }
@@ -44,7 +53,6 @@ public class RendererSolid {
     }
 
     private void renderInternal(Solid solid, Mat4 mvp) {
-        boolean wire = solid.getRenderMode() == RenderMode.WIRE;
         for (Part part : solid.getPartBuffer()) {
             switch (part.getType()) {
                 case LINES:
@@ -70,7 +78,7 @@ public class RendererSolid {
                         Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
                         Vertex c = solid.getVertexBuffer().get(indexC).transform(mvp);
 
-                        if (wire) {
+                        if (renderMode == RenderMode.WIRE) {
                             drawEdge(a, b);
                             drawEdge(b, c);
                             drawEdge(c, a);
