@@ -28,7 +28,7 @@ public class Controller3D {
     private final LineRasterizer lineRasterizer;
     private final TriangleRasterizer triangleRasterizer;
     private final RendererSolid renderer;
-    private final Projection projection = Projection.PERSPECTIVE;
+    private Projection projection = Projection.PERSPECTIVE;
 
     private final Arrow arrowX, arrowY, arrowZ;
     private final Solid sphere, sphere2;
@@ -116,6 +116,9 @@ public class Controller3D {
                 } else if (e.getKeyCode() == KeyEvent.VK_TAB) {
                     selectedSolidIndex = (selectedSolidIndex + 1) % selectableSolids.size();
                     redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_P) {
+                    projection = projection == Projection.PERSPECTIVE ? Projection.ORTHOGRAPHIC : Projection.PERSPECTIVE;
+                    redraw = true;
                 }
 
                 if (redraw) {
@@ -159,6 +162,8 @@ public class Controller3D {
 
     private void drawScene() {
         zBuffer.clear();
+
+        renderer.setProj(Projection.PERSPECTIVE == projection ? perspProj : orthoProj);
 
         for (Solid solid : selectableSolids) {
             renderer.render(solid);

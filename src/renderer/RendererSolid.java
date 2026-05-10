@@ -17,7 +17,7 @@ public class RendererSolid {
     private final LineRasterizer lineRasterizer;
     private final TriangleRasterizer triangleRasterizer;
     private Mat4 view;
-    private final Mat4 proj;
+    private Mat4 proj;
     private final int width, height;
     private final Lerp<Vertex> lerp = new Lerp<>();
     private RenderMode renderMode = RenderMode.FILL;
@@ -34,6 +34,10 @@ public class RendererSolid {
 
     public void setView(Mat4 view) {
         this.view = view;
+    }
+
+    public void setProj(Mat4 proj) {
+        this.proj = proj;
     }
 
     public RenderMode getRenderMode() {
