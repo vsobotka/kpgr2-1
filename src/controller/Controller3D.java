@@ -7,6 +7,7 @@ import rasterize.LineRasterizerGraphics;
 import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
 import solid.Arrow;
+import solid.RenderMode;
 import solid.Solid;
 import solid.Sphere;
 import transforms.*;
@@ -102,6 +103,9 @@ public class Controller3D {
                 } else if (e.getKeyCode() == KeyEvent.VK_D) {
                     camera = camera.right(Config.CAMERA_SPEED);
                     redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_M) {
+                    sphere.setRenderMode(sphere.getRenderMode() == RenderMode.FILL ? RenderMode.WIRE : RenderMode.FILL);
+                    redraw = true;
                 }
 
                 if (redraw) {
@@ -157,7 +161,6 @@ public class Controller3D {
     }
 
     private void renderArrowAxis(Arrow arrow, Mat4 gView) {
-        lineRasterizer.setColor(arrow.getColor());
         renderer.renderHud(arrow, gView, hudProj);
         Graphics2D g = (Graphics2D) panel.getRaster().getImage().getGraphics();
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));

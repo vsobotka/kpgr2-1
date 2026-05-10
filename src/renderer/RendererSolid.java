@@ -4,6 +4,7 @@ import model.Part;
 import model.Vertex;
 import rasterize.LineRasterizer;
 import rasterize.TriangleRasterizer;
+import solid.RenderMode;
 import solid.Solid;
 import transforms.Mat4;
 import transforms.Point3D;
@@ -43,6 +44,7 @@ public class RendererSolid {
     }
 
     private void renderInternal(Solid solid, Mat4 mvp) {
+        boolean wire = solid.getRenderMode() == RenderMode.WIRE;
         for (Part part : solid.getPartBuffer()) {
             switch (part.getType()) {
                 case LINES:
@@ -54,18 +56,7 @@ public class RendererSolid {
                         Vertex a = solid.getVertexBuffer().get(indexA).transform(mvp);
                         Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
 
-                        Vertex[] clipped = clipLineNear(a, b);
-                        if (clipped == null) continue;
-
-                        Vertex sa = toScreen(clipped[0].dehomog());
-                        Vertex sb = toScreen(clipped[1].dehomog());
-
-                        lineRasterizer.rasterize(
-                                (int) Math.round(sa.getX()),
-                                (int) Math.round(sa.getY()),
-                                (int) Math.round(sb.getX()),
-                                (int) Math.round(sb.getY())
-                        );
+                        drawEdge(a, b);
                     }
                     break;
                 case TRIANGLES:
@@ -79,20 +70,42 @@ public class RendererSolid {
                         Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
                         Vertex c = solid.getVertexBuffer().get(indexC).transform(mvp);
 
-                        List<Vertex> clipped = clipTriangleNear(a, b, c);
-                        if (clipped.size() < 3) continue;
+                        if (wire) {
+                            drawEdge(a, b);
+                            drawEdge(b, c);
+                            drawEdge(c, a);
+                        } else {
+                            List<Vertex> clipped = clipTriangleNear(a, b, c);
+                            if (clipped.size() < 3) continue;
 
-                        List<Vertex> screen = new ArrayList<>(clipped.size());
-                        for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
+                            List<Vertex> screen = new ArrayList<>(clipped.size());
+                            for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
 
-                        // fan-triangulate (clipped polygon has 3 or 4 vertices)
-                        for (int k = 1; k < screen.size() - 1; k++) {
-                            triangleRasterizer.rasterize(screen.get(0), screen.get(k), screen.get(k + 1));
+                            // fan-triangulate (clipped polygon has 3 or 4 vertices)
+                            for (int k = 1; k < screen.size() - 1; k++) {
+                                triangleRasterizer.rasterize(screen.get(0), screen.get(k), screen.get(k + 1));
+                            }
                         }
                     }
                     break;
             }
         }
+    }
+
+    private void drawEdge(Vertex a, Vertex b) {
+        Vertex[] clipped = clipLineNear(a, b);
+        if (clipped == null) return;
+
+        Vertex sa = toScreen(clipped[0].dehomog());
+        Vertex sb = toScreen(clipped[1].dehomog());
+
+        lineRasterizer.setColor(sa.getColor());
+        lineRasterizer.rasterize(
+                (int) Math.round(sa.getX()),
+                (int) Math.round(sa.getY()),
+                (int) Math.round(sb.getX()),
+                (int) Math.round(sb.getY())
+        );
     }
 
     private Vertex[] clipLineNear(Vertex a, Vertex b) {
