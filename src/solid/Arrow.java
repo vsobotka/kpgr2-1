@@ -4,12 +4,15 @@ import model.Part;
 import model.TopologyType;
 import model.Vertex;
 import transforms.Col;
+import transforms.Point3D;
 
 public class Arrow extends Solid {
     private final Col color;
+    private final String label;
 
-    public Arrow(Col color) {
+    public Arrow(Col color, String label) {
         this.color = color;
+        this.label = label;
 
         vertexBuffer.add(new Vertex(0,   0,   0, color)); // v0
         vertexBuffer.add(new Vertex( 1,   0,   0, color)); // v1
@@ -26,5 +29,11 @@ public class Arrow extends Solid {
 
     public Col getColor() {
         return color;
+    }
+    public String getLabel() {
+        return label;
+    }
+    public Point3D getTipPosition() {
+        return new Point3D(1.4, 0, 0);
     }
 }

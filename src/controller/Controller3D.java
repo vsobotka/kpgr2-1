@@ -12,6 +12,9 @@ import solid.Sphere;
 import transforms.*;
 import view.Panel;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -26,9 +29,10 @@ public class Controller3D {
     private final RendererSolid renderer;
     private final Projection projection = Projection.PERSPECTIVE;
 
-    private final Solid arrow;
+    private final Arrow arrowX, arrowY, arrowZ;
     private final Solid sphere;
     private final Mat4 perspProj, orthoProj;
+    private final Mat4 hudProj;
     private Camera camera;
 
     public Controller3D(Panel panel) {
@@ -52,6 +56,8 @@ public class Controller3D {
         orthoProj = new Mat4OrthoRH(
                 w, h, Config.NEAR_CLIP, Config.FAR_CLIP
         );
+        hudProj = new Mat4OrthoRH(18, 18, -10, 10)
+                .mul(new Mat4Transl(-0.75, 0.75, 0));
         this.camera = createCamera();
         Mat4 view = this.camera.getViewMatrix();
         Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
@@ -60,7 +66,12 @@ public class Controller3D {
                 panel.getRaster().getWidth(), panel.getRaster().getHeight()
         );
 
-        this.arrow = new Arrow();
+        this.arrowX = new Arrow(new Col(0xff4040), "X");
+        this.arrowY = new Arrow(new Col(0x40ff40), "Y");
+        this.arrowY.setModel(new Mat4RotZ(Math.toRadians(90)));
+        this.arrowZ = new Arrow(new Col(0x4080ff), "Z");
+        this.arrowZ.setModel(new Mat4RotY(Math.toRadians(-90)));
+
         this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
 
         initListeners();
@@ -135,10 +146,40 @@ public class Controller3D {
     private void drawScene() {
         zBuffer.clear();
 
-        renderer.render(arrow);
         renderer.render(sphere);
 
+        Mat4 gView = hudView();
+        renderArrowAxis(arrowX, gView);
+        renderArrowAxis(arrowY, gView);
+        renderArrowAxis(arrowZ, gView);
+
         panel.repaint();
+    }
+
+    private void renderArrowAxis(Arrow arrow, Mat4 gView) {
+        lineRasterizer.setColor(arrow.getColor());
+        renderer.renderHud(arrow, gView, hudProj);
+        Graphics2D g = (Graphics2D) panel.getRaster().getImage().getGraphics();
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        drawLabel(g, arrow, gView);
+    }
+
+    private void drawLabel(Graphics2D g, Arrow arrow, Mat4 gView) {
+        Point3D tip = arrow.getTipPosition().mul(arrow.getModel()).mul(gView).mul(hudProj);
+        if (tip.getW() == 0) return;
+        int sx = (int) ((tip.getX() / tip.getW() + 1) * 0.5 * panel.getRaster().getWidth());
+        int sy = (int) ((1 - tip.getY() / tip.getW()) * 0.5 * panel.getRaster().getHeight());
+
+        g.setColor(new Color(arrow.getColor().getRGB()));
+        g.drawString(arrow.getLabel(), sx, sy);
+    }
+
+    private Mat4 hudView() {
+        return new Camera()
+                .withAzimuth(camera.getAzimuth())
+                .withZenith(camera.getZenith())
+                .withFirstPerson(true)
+                .getViewMatrix();
     }
 
     private Camera createCamera() {
