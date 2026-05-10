@@ -35,8 +35,14 @@ public class RendererSolid {
     }
 
     public void render(Solid solid) {
-        Mat4 mvp = solid.getModel().mul(view).mul(proj);
+        renderInternal(solid, solid.getModel().mul(view).mul(proj));
+    }
 
+    public void renderHud(Solid solid, Mat4 hudView, Mat4 hudProj) {
+        renderInternal(solid, solid.getModel().mul(hudView).mul(hudProj));
+    }
+
+    private void renderInternal(Solid solid, Mat4 mvp) {
         for (Part part : solid.getPartBuffer()) {
             switch (part.getType()) {
                 case LINES:
