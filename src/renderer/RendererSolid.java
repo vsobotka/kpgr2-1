@@ -77,30 +77,47 @@ public class RendererSolid {
                         int indexA = solid.getIndexBuffer().get(index++);
                         int indexB = solid.getIndexBuffer().get(index++);
                         int indexC = solid.getIndexBuffer().get(index++);
-
-                        Vertex a = solid.getVertexBuffer().get(indexA).transform(mvp);
-                        Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
-                        Vertex c = solid.getVertexBuffer().get(indexC).transform(mvp);
-
-                        if (renderMode == RenderMode.WIRE) {
-                            drawEdge(a, b);
-                            drawEdge(b, c);
-                            drawEdge(c, a);
-                        } else {
-                            List<Vertex> clipped = clipTriangleNear(a, b, c);
-                            if (clipped.size() < 3) continue;
-
-                            List<Vertex> screen = new ArrayList<>(clipped.size());
-                            for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
-
-                            // fan-triangulate (clipped polygon has 3 or 4 vertices)
-                            for (int k = 1; k < screen.size() - 1; k++) {
-                                triangleRasterizer.rasterize(screen.get(0), screen.get(k), screen.get(k + 1));
-                            }
-                        }
+                        rasterTriangle(
+                                solid.getVertexBuffer().get(indexA).transform(mvp),
+                                solid.getVertexBuffer().get(indexB).transform(mvp),
+                                solid.getVertexBuffer().get(indexC).transform(mvp)
+                        );
+                    }
+                    break;
+                case TRIANGLE_STRIP:
+                    int start = part.getStartIndex();
+                    for (int i = 0; i < part.getCount() - 2; i++) {
+                        int indexA = solid.getIndexBuffer().get(start + i);
+                        int indexB = solid.getIndexBuffer().get(start + i + 1);
+                        int indexC = solid.getIndexBuffer().get(start + i + 2);
+                        if ((i & 1) == 1) { int tmp = indexA; indexA = indexB; indexB = tmp; }
+                        rasterTriangle(
+                            solid.getVertexBuffer().get(indexA).transform(mvp),
+                            solid.getVertexBuffer().get(indexB).transform(mvp),
+                            solid.getVertexBuffer().get(indexC).transform(mvp)
+                        );
                     }
                     break;
             }
+        }
+    }
+
+    private void rasterTriangle(Vertex a, Vertex b, Vertex c) {
+        if (renderMode == RenderMode.WIRE) {
+            drawEdge(a, b);
+            drawEdge(b, c);
+            drawEdge(c, a);
+            return;
+        }
+        List<Vertex> clipped = clipTriangleNear(a, b, c);
+        if (clipped.size() < 3) return;
+
+        List<Vertex> screen = new ArrayList<>(clipped.size());
+        for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
+
+        // fan-triangulate (clipped polygon has 3 or 4 vertices)
+        for (int k = 1; k < screen.size() - 1; k++) {
+            triangleRasterizer.rasterize(screen.get(0), screen.get(k), screen.get(k + 1));
         }
     }
 
