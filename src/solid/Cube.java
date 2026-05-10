@@ -4,6 +4,8 @@ import model.Part;
 import model.TopologyType;
 import model.Vertex;
 import transforms.Col;
+import transforms.Point3D;
+import transforms.Vec2D;
 import transforms.Vec3D;
 
 public class Cube extends Solid {
@@ -11,31 +13,40 @@ public class Cube extends Solid {
         super();
         Col col = new Col(53, 126, 199);
 
-        vertexBuffer.add(new Vertex(start.getX(), start.getY(), start.getZ(), col)); // 0 Bottom-Front-Left
-        vertexBuffer.add(new Vertex(start.getX() + size, start.getY(), start.getZ(), col)); // 1 Bottom-Front-Right
-        vertexBuffer.add(new Vertex(start.getX() + size, start.getY() + size, start.getZ(), col)); // 2 Bottom-Back-Right
-        vertexBuffer.add(new Vertex(start.getX(), start.getY() + size, start.getZ(), col)); // 3 Bottom-Back-Left
+        double x = start.getX(), y = start.getY(), z = start.getZ();
 
-        vertexBuffer.add(new Vertex(start.getX(), start.getY(), start.getZ() + size, col)); // 4 Top-Front-Left
-        vertexBuffer.add(new Vertex(start.getX() + size, start.getY(), start.getZ() + size, col)); // 5 Top-Front-Right
-        vertexBuffer.add(new Vertex(start.getX() + size, start.getY() + size, start.getZ() + size, col)); // 6 Top-Back-Right
-        vertexBuffer.add(new Vertex(start.getX(), start.getY() + size, start.getZ() + size, col)); // 7 Top-Back-Left
+        // Bottom (-Z)
+        addFace(new Point3D(x, y, z), new Point3D(x, y + size, z),
+                new Point3D(x + size, y + size, z), new Point3D(x + size, y, z), col);
+        // Top (+Z)
+        addFace(new Point3D(x, y, z + size), new Point3D(x + size, y, z + size),
+                new Point3D(x + size, y + size, z + size), new Point3D(x, y + size, z + size), col);
+        // Front (-Y)
+        addFace(new Point3D(x, y, z), new Point3D(x + size, y, z),
+                new Point3D(x + size, y, z + size), new Point3D(x, y, z + size), col);
+        // Back (+Y)
+        addFace(new Point3D(x + size, y + size, z), new Point3D(x, y + size, z),
+                new Point3D(x, y + size, z + size), new Point3D(x + size, y + size, z + size), col);
+        // Left (-X)
+        addFace(new Point3D(x, y + size, z), new Point3D(x, y, z),
+                new Point3D(x, y, z + size), new Point3D(x, y + size, z + size), col);
+        // Right (+X)
+        addFace(new Point3D(x + size, y, z), new Point3D(x + size, y + size, z),
+                new Point3D(x + size, y + size, z + size), new Point3D(x + size, y, z + size), col);
 
-        indexBuffer.add(0);
-        indexBuffer.add(1);
-        indexBuffer.add(3);
-        indexBuffer.add(2);
-        indexBuffer.add(6);
-        indexBuffer.add(1);
-        indexBuffer.add(5);
-        indexBuffer.add(0);
-        indexBuffer.add(4);
-        indexBuffer.add(3);
-        indexBuffer.add(7);
-        indexBuffer.add(6);
-        indexBuffer.add(4);
-        indexBuffer.add(5);
+        partBuffer.add(new Part(TopologyType.TRIANGLES, 0, 12));
+    }
 
-        partBuffer.add(new Part(TopologyType.TRIANGLE_STRIP, 0, 14));
+    private void addFace(Point3D a, Point3D b, Point3D c, Point3D d, Col col) {
+        double uvMin = 0.5 / 15.0;
+        double uvMax = 4.5 / 15.0;
+
+        int base = vertexBuffer.size();
+        vertexBuffer.add(new Vertex(a, col, new Vec2D(uvMin, uvMin)));
+        vertexBuffer.add(new Vertex(b, col, new Vec2D(uvMax, uvMin)));
+        vertexBuffer.add(new Vertex(c, col, new Vec2D(uvMax, uvMax)));
+        vertexBuffer.add(new Vertex(d, col, new Vec2D(uvMin, uvMax)));
+        addIndices(base, base + 1, base + 2);
+        addIndices(base, base + 2, base + 3);
     }
 }

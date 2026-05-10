@@ -89,7 +89,14 @@ public class Controller3D {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         this.cube = new Cube(new Vec3D(0.5, 0, 0.5), 0.5);
+        try {
+            cube.setTexture(new Texture("res/textures/bw-square.jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         this.cone = new Cone(new Vec3D(-0.5, 0.3, -1), 0.5, 3);
         this.cone.setModel(new Mat4RotX(Math.toRadians(45)));
 
