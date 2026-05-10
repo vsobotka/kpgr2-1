@@ -7,7 +7,9 @@ import rasterize.LineRasterizer;
 import rasterize.LineRasterizerGraphics;
 import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
+import shader.Shader;
 import shader.ShaderInterpolated;
+import shader.ShaderPhong;
 import shader.ShaderTexture;
 import solid.Arrow;
 import solid.Cone;
@@ -37,7 +39,8 @@ public class Controller3D {
     private Projection projection = Projection.PERSPECTIVE;
 
     private final Arrow arrowX, arrowY, arrowZ;
-    private final Solid sphere, cube, cone;
+    private final Solid sphere, cube, cone, light;
+    private final Col lightColor = new Col(1.0, 0.95, 0.8);
     private final Mat4 perspProj, orthoProj;
     private final Mat4 hudProj;
     private Camera camera;
@@ -107,9 +110,13 @@ public class Controller3D {
             throw new RuntimeException(e);
         }
 
+        this.light = new Sphere(new Vec3D(0, 0, 0), 0.15);
+        this.light.setModel(new Mat4Transl(2, -2, 3));
+
         selectableSolids.add(sphere);
         selectableSolids.add(cube);
         selectableSolids.add(cone);
+        selectableSolids.add(light);
 
         initListeners();
 
@@ -209,10 +216,10 @@ public class Controller3D {
 
     private void applyStep(int sign) {
         Solid s = selectableSolids.get(selectedSolidIndex);
-        s.setModel(s.getModel().mul(buildDelta(sign)));
+        s.setModel(s.getModel().mul(buildDelta(sign, s)));
     }
 
-    private Mat4 buildDelta(int sign) {
+    private Mat4 buildDelta(int sign, Solid s) {
         switch (transformOp) {
             case TRANSLATE: {
                 double t = sign * Config.MODEL_TRANSLATE_STEP;
@@ -224,18 +231,28 @@ public class Controller3D {
             }
             case ROTATE: {
                 double r = sign * Config.MODEL_ROTATE_STEP;
+                Mat4 rot;
                 switch (transformAxis) {
-                    case X: return new Mat4RotX(r);
-                    case Y: return new Mat4RotY(r);
-                    case Z: return new Mat4RotZ(r);
+                    case X: rot = new Mat4RotX(r); break;
+                    case Y: rot = new Mat4RotY(r); break;
+                    case Z: rot = new Mat4RotZ(r); break;
+                    default: rot = new Mat4Identity();
                 }
+                return aroundCenter(rot, s);
             }
             case SCALE: {
                 double f = sign > 0 ? Config.SCALE_UP_FACTOR : Config.SCALE_DOWN_FACTOR;
-                return new Mat4Scale(f, f, f);
+                return aroundCenter(new Mat4Scale(f, f, f), s);
             }
         }
         return new Mat4Identity();
+    }
+
+    private Mat4 aroundCenter(Mat4 m, Solid s) {
+        Vec3D c = new Point3D(s.getCenter()).mul(s.getModel()).ignoreW();
+        return new Mat4Transl(-c.getX(), -c.getY(), -c.getZ())
+                .mul(m)
+                .mul(new Mat4Transl(c.getX(), c.getY(), c.getZ()));
     }
 
     private void drawScene() {
@@ -243,12 +260,19 @@ public class Controller3D {
 
         renderer.setProj(Projection.PERSPECTIVE == projection ? perspProj : orthoProj);
 
+        Vec3D lightWorld = new Point3D(0, 0, 0).mul(light.getModel()).ignoreW();
+
         for (Solid solid : selectableSolids) {
-            if (solid.getRenderTexture() && solid.getTexture() != null) {
-                renderer.setShader(new ShaderTexture(solid.getTexture()));
+            Shader shader;
+            if (solid == light) {
+                shader = p -> lightColor;
             } else {
-                renderer.setShader(new ShaderInterpolated());
+                Shader base = (solid.getRenderTexture() && solid.getTexture() != null)
+                        ? new ShaderTexture(solid.getTexture())
+                        : new ShaderInterpolated();
+                shader = new ShaderPhong(base, lightWorld, lightColor);
             }
+            renderer.setShader(shader);
             renderer.render(solid);
         }
 

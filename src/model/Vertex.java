@@ -11,7 +11,17 @@ public class Vertex implements Vectorizable<Vertex> {
     private final Col color;
     private Vec2D uv = new Vec2D(0, 0);
     private Vec3D normal = new Vec3D(0, 0, 0);
+    private Point3D worldPos = new Point3D(0, 0, 0);
     private double one = 1;
+
+    public Vertex(Point3D position, Col color, Vec2D uv, Vec3D normal, Point3D worldPos, double one) {
+        this.position = position;
+        this.color = color;
+        this.uv = uv;
+        this.normal = normal;
+        this.worldPos = worldPos;
+        this.one = one;
+    }
 
     public Vertex(Point3D position, Col color, Vec2D uv, Vec3D normal, double one) {
         this.position = position;
@@ -59,20 +69,20 @@ public class Vertex implements Vectorizable<Vertex> {
 
     @Override
     public Vertex mul(double d) {
-        return new Vertex(position.mul(d), color.mul(d), uv.mul(d), normal.mul(d), one * d);
+        return new Vertex(position.mul(d), color.mul(d), uv.mul(d), normal.mul(d), worldPos.mul(d), one * d);
     }
 
     @Override
     public Vertex add(Vertex v) {
-        return new Vertex(position.add(v.getPosition()), color.add(v.getColor()), uv.add(v.getUV()), normal.add(v.getNormal()), one + v.getOne());
+        return new Vertex(position.add(v.getPosition()), color.add(v.getColor()), uv.add(v.getUV()), normal.add(v.getNormal()), worldPos.add(v.getWorldPos()), one + v.getOne());
     }
 
     public Vertex transform(Mat4 matrix) {
-        return new Vertex(position.mul(matrix), color, uv, normal, one);
+        return new Vertex(position.mul(matrix), color, uv, normal, worldPos, one);
     }
 
     public Vertex dehomog() {
-        return new Vertex(position.mul(1 / position.getW()), color, uv, normal, one);
+        return new Vertex(position.mul(1 / position.getW()), color, uv, normal, worldPos, one);
     }
 
     public double getOne() {
@@ -85,5 +95,9 @@ public class Vertex implements Vectorizable<Vertex> {
 
     public Vec3D getNormal() {
         return normal;
+    }
+
+    public Point3D getWorldPos() {
+        return worldPos;
     }
 }

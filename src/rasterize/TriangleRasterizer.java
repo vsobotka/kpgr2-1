@@ -73,7 +73,9 @@ public class TriangleRasterizer {
                     pixel.getPosition(),
                     pixel.getColor().mul(w),
                     pixel.getUV().mul(w),
-                    pixel.getNormal().mul(w));
+                    pixel.getNormal().mul(w),
+                    pixel.getWorldPos().mul(w),
+                    1);
 
             zBuffer.setPixelWithZTest(x, y, pixel.getZ(), shader.getColor(corrected));
         }

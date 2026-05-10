@@ -9,6 +9,7 @@ import solid.RenderMode;
 import solid.Solid;
 import transforms.Mat4;
 import transforms.Point3D;
+import transforms.Vec3D;
 import util.Lerp;
 
 import java.util.ArrayList;
@@ -56,14 +57,14 @@ public class RendererSolid {
     }
 
     public void render(Solid solid) {
-        renderInternal(solid, solid.getModel().mul(view).mul(proj));
+        renderInternal(solid, solid.getModel(), solid.getModel().mul(view).mul(proj));
     }
 
     public void renderHud(Solid solid, Mat4 hudView, Mat4 hudProj) {
-        renderInternal(solid, solid.getModel().mul(hudView).mul(hudProj));
+        renderInternal(solid, solid.getModel(), solid.getModel().mul(hudView).mul(hudProj));
     }
 
-    private void renderInternal(Solid solid, Mat4 mvp) {
+    private void renderInternal(Solid solid, Mat4 model, Mat4 mvp) {
         for (Part part : solid.getPartBuffer()) {
             switch (part.getType()) {
                 case LINES:
@@ -72,8 +73,8 @@ public class RendererSolid {
                         int indexA = solid.getIndexBuffer().get(index++);
                         int indexB = solid.getIndexBuffer().get(index++);
 
-                        Vertex a = solid.getVertexBuffer().get(indexA).transform(mvp);
-                        Vertex b = solid.getVertexBuffer().get(indexB).transform(mvp);
+                        Vertex a = vertexStage(solid.getVertexBuffer().get(indexA), model, mvp);
+                        Vertex b = vertexStage(solid.getVertexBuffer().get(indexB), model, mvp);
 
                         drawEdge(a, b);
                     }
@@ -85,9 +86,9 @@ public class RendererSolid {
                         int indexB = solid.getIndexBuffer().get(index++);
                         int indexC = solid.getIndexBuffer().get(index++);
                         rasterTriangle(
-                                solid.getVertexBuffer().get(indexA).transform(mvp),
-                                solid.getVertexBuffer().get(indexB).transform(mvp),
-                                solid.getVertexBuffer().get(indexC).transform(mvp)
+                                vertexStage(solid.getVertexBuffer().get(indexA), model, mvp),
+                                vertexStage(solid.getVertexBuffer().get(indexB), model, mvp),
+                                vertexStage(solid.getVertexBuffer().get(indexC), model, mvp)
                         );
                     }
                     break;
@@ -99,14 +100,22 @@ public class RendererSolid {
                         int indexC = solid.getIndexBuffer().get(start + i + 2);
                         if ((i & 1) == 1) { int tmp = indexA; indexA = indexB; indexB = tmp; }
                         rasterTriangle(
-                            solid.getVertexBuffer().get(indexA).transform(mvp),
-                            solid.getVertexBuffer().get(indexB).transform(mvp),
-                            solid.getVertexBuffer().get(indexC).transform(mvp)
+                            vertexStage(solid.getVertexBuffer().get(indexA), model, mvp),
+                            vertexStage(solid.getVertexBuffer().get(indexB), model, mvp),
+                            vertexStage(solid.getVertexBuffer().get(indexC), model, mvp)
                         );
                     }
                     break;
             }
         }
+    }
+
+    private Vertex vertexStage(Vertex v, Mat4 model, Mat4 mvp) {
+        Point3D worldPos = v.getPosition().mul(model);
+        Vec3D n = v.getNormal();
+        Point3D nDir = new Point3D(n.getX(), n.getY(), n.getZ(), 0).mul(model);
+        Vec3D worldNormal = new Vec3D(nDir.getX(), nDir.getY(), nDir.getZ());
+        return new Vertex(v.getPosition().mul(mvp), v.getColor(), v.getUV(), worldNormal, worldPos, v.getOne());
     }
 
     private void rasterTriangle(Vertex a, Vertex b, Vertex c) {
@@ -184,17 +193,19 @@ public class RendererSolid {
     private Vertex toScreen(Vertex v) {
         double x = (v.getX() + 1) * 0.5 * width;
         double y = (1 - v.getY()) * 0.5 * height;
-        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor(), v.getUV(), v.getNormal(), v.getOne());
+        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor(), v.getUV(), v.getNormal(), v.getWorldPos(), v.getOne());
     }
 
     private Vertex perspDehomog(Vertex v) {
         double oneOverW = 1.0 / v.getW();
         Point3D p = v.getPosition();
+        Point3D wp = v.getWorldPos();
         return new Vertex(
                 new Point3D(p.getX() * oneOverW, p.getY() * oneOverW, p.getZ() * oneOverW),
                 v.getColor().mul(oneOverW),
                 v.getUV().mul(oneOverW),
                 v.getNormal().mul(oneOverW),
+                wp.mul(oneOverW),
                 oneOverW
         );
     }

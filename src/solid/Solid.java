@@ -5,6 +5,7 @@ import model.Vertex;
 import raster.Texture;
 import transforms.Mat4;
 import transforms.Mat4Identity;
+import transforms.Vec3D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +49,18 @@ public abstract class Solid {
 
     public Texture getTexture() {
         return texture;
+    }
+
+    public Vec3D getCenter() {
+        if (vertexBuffer.isEmpty()) return new Vec3D(0, 0, 0);
+        double sx = 0, sy = 0, sz = 0;
+        for (Vertex v : vertexBuffer) {
+            sx += v.getX();
+            sy += v.getY();
+            sz += v.getZ();
+        }
+        int n = vertexBuffer.size();
+        return new Vec3D(sx / n, sy / n, sz / n);
     }
 
     public void toggleRenderTexture() {
