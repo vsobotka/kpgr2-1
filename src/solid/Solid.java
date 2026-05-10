@@ -18,6 +18,7 @@ public abstract class Solid {
     protected Mat4 model = new Mat4Identity();
     protected Texture texture;
     protected boolean renderTexture = true;
+    protected String name;
 
     public List<Vertex> getVertexBuffer() {
         return vertexBuffer;
@@ -41,6 +42,14 @@ public abstract class Solid {
 
     public void setModel(Mat4 model) {
         this.model = model;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name != null ? name : getClass().getSimpleName();
     }
 
     public void setTexture(Texture texture) {
