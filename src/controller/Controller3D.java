@@ -39,6 +39,9 @@ public class Controller3D {
     private ArrayList<Solid> selectableSolids = new ArrayList<Solid>();
     private Integer selectedSolidIndex = 0;
 
+    private TransformOp transformOp = TransformOp.TRANSLATE;
+    private TransformAxis transformAxis = TransformAxis.X;
+
     public Controller3D(Panel panel) {
         this.panel = panel;
         this.zBuffer = new ZBuffer(panel.getRaster());
@@ -119,6 +122,20 @@ public class Controller3D {
                 } else if (e.getKeyCode() == KeyEvent.VK_P) {
                     projection = projection == Projection.PERSPECTIVE ? Projection.ORTHOGRAPHIC : Projection.PERSPECTIVE;
                     redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_T) {
+                    TransformOp[] ops = TransformOp.values();
+                    transformOp = ops[(transformOp.ordinal() + 1) % ops.length];
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_X) {
+                    TransformAxis[] axes = TransformAxis.values();
+                    transformAxis = axes[(transformAxis.ordinal() + 1) % axes.length];
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_OPEN_BRACKET) {
+                    applyStep(-1);
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_CLOSE_BRACKET) {
+                    applyStep(+1);
+                    redraw = true;
                 }
 
                 if (redraw) {
@@ -160,6 +177,37 @@ public class Controller3D {
         panel.addMouseMotionListener(mouseAdapter);
     }
 
+    private void applyStep(int sign) {
+        Solid s = selectableSolids.get(selectedSolidIndex);
+        s.setModel(s.getModel().mul(buildDelta(sign)));
+    }
+
+    private Mat4 buildDelta(int sign) {
+        switch (transformOp) {
+            case TRANSLATE: {
+                double t = sign * Config.MODEL_TRANSLATE_STEP;
+                switch (transformAxis) {
+                    case X: return new Mat4Transl(t, 0, 0);
+                    case Y: return new Mat4Transl(0, t, 0);
+                    case Z: return new Mat4Transl(0, 0, t);
+                }
+            }
+            case ROTATE: {
+                double r = sign * Config.MODEL_ROTATE_STEP;
+                switch (transformAxis) {
+                    case X: return new Mat4RotX(r);
+                    case Y: return new Mat4RotY(r);
+                    case Z: return new Mat4RotZ(r);
+                }
+            }
+            case SCALE: {
+                double f = sign > 0 ? Config.SCALE_UP_FACTOR : Config.SCALE_DOWN_FACTOR;
+                return new Mat4Scale(f, f, f);
+            }
+        }
+        return new Mat4Identity();
+    }
+
     private void drawScene() {
         zBuffer.clear();
 
@@ -174,24 +222,43 @@ public class Controller3D {
         renderArrowAxis(arrowY, gView);
         renderArrowAxis(arrowZ, gView);
 
+        drawHudCaption();
+
         panel.repaint();
     }
 
     private void renderArrowAxis(Arrow arrow, Mat4 gView) {
         renderer.renderHud(arrow, gView, hudProj);
         Graphics2D g = (Graphics2D) panel.getRaster().getImage().getGraphics();
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        drawLabel(g, arrow, gView);
+        boolean selected = arrow == arrowForAxis(transformAxis);
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, selected ? 18 : 14));
+        drawLabel(g, arrow, gView, selected);
     }
 
-    private void drawLabel(Graphics2D g, Arrow arrow, Mat4 gView) {
+    private void drawLabel(Graphics2D g, Arrow arrow, Mat4 gView, boolean selected) {
         Point3D tip = arrow.getTipPosition().mul(arrow.getModel()).mul(gView).mul(hudProj);
         if (tip.getW() == 0) return;
         int sx = (int) ((tip.getX() / tip.getW() + 1) * 0.5 * panel.getRaster().getWidth());
         int sy = (int) ((1 - tip.getY() / tip.getW()) * 0.5 * panel.getRaster().getHeight());
 
         g.setColor(new Color(arrow.getColor().getRGB()));
-        g.drawString(arrow.getLabel(), sx, sy);
+        g.drawString(selected ? "[" + arrow.getLabel() + "]" : arrow.getLabel(), sx, sy);
+    }
+
+    private Arrow arrowForAxis(TransformAxis axis) {
+        switch (axis) {
+            case X: return arrowX;
+            case Y: return arrowY;
+            case Z: return arrowZ;
+        }
+        return arrowX;
+    }
+
+    private void drawHudCaption() {
+        Graphics2D g = (Graphics2D) panel.getRaster().getImage().getGraphics();
+        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        g.setColor(Color.WHITE);
+        g.drawString(transformOp.name(), 8, 16);
     }
 
     private Mat4 hudView() {
@@ -209,6 +276,10 @@ public class Controller3D {
                 .withZenith(Math.toRadians(Config.CAMERA_INIT_ZENITH)) // - -> look down, + -> look up
                 .withFirstPerson(true);
     }
+
+    private enum TransformOp { TRANSLATE, ROTATE, SCALE }
+
+    private enum TransformAxis { X, Y, Z }
 
     private enum Projection {
         ORTHOGRAPHIC,

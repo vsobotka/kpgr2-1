@@ -18,6 +18,9 @@ public class Config {
     public static final double SCALE_UP_FACTOR = 1.05;
     public static final double SCALE_DOWN_FACTOR = 0.95;
 
+    public static final double MODEL_TRANSLATE_STEP = 0.1;
+    public static final double MODEL_ROTATE_STEP = Math.toRadians(5);
+
     public static final int ANIMATION_DELAY_MS = 16;  // ~60 fps
 
     public static final int CURVE_SEGMENTS = 30;
