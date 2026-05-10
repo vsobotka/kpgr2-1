@@ -12,7 +12,7 @@ public class Cone extends Solid {
     private static final int M = 20;
 
     public Cone(Vec3D base, double radius, double height) {
-        Col col = new Col(1, 1, 1);
+        Col col = new Col(0.2, 0.3, 0.4);
         double bx = base.getX(), by = base.getY(), bz = base.getZ();
 
         for (int i = 0; i < M; i++) {
