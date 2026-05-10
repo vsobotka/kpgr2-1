@@ -113,7 +113,7 @@ public class RendererSolid {
         if (clipped.size() < 3) return;
 
         List<Vertex> screen = new ArrayList<>(clipped.size());
-        for (Vertex v : clipped) screen.add(toScreen(v.dehomog()));
+        for (Vertex v : clipped) screen.add(toScreen(perspDehomog(v)));
 
         // fan-triangulate (clipped polygon has 3 or 4 vertices)
         for (int k = 1; k < screen.size() - 1; k++) {
@@ -177,6 +177,15 @@ public class RendererSolid {
     private Vertex toScreen(Vertex v) {
         double x = (v.getX() + 1) * 0.5 * width;
         double y = (1 - v.getY()) * 0.5 * height;
-        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor());
+        return new Vertex(new Point3D(x, y, v.getZ(), v.getW()), v.getColor());
+    }
+
+    private Vertex perspDehomog(Vertex v) {
+        double oneOverW = 1.0 / v.getW();
+        Point3D p = v.getPosition();
+        return new Vertex(
+                new Point3D(p.getX() * oneOverW, p.getY() * oneOverW, p.getZ() * oneOverW, oneOverW),
+                v.getColor().mul(oneOverW)
+        );
     }
 }
