@@ -7,6 +7,8 @@ import rasterize.LineRasterizer;
 import rasterize.LineRasterizerGraphics;
 import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
+import shader.ShaderInterpolated;
+import shader.ShaderTexture;
 import solid.Arrow;
 import solid.Cone;
 import solid.Cube;
@@ -242,8 +244,15 @@ public class Controller3D {
         renderer.setProj(Projection.PERSPECTIVE == projection ? perspProj : orthoProj);
 
         for (Solid solid : selectableSolids) {
+            if (solid.getRenderTexture() && solid.getTexture() != null) {
+                renderer.setShader(new ShaderTexture(solid.getTexture()));
+            } else {
+                renderer.setShader(new ShaderInterpolated());
+            }
             renderer.render(solid);
         }
+
+        renderer.setShader(new ShaderInterpolated());
 
         Mat4 gView = hudView();
         renderArrowAxis(arrowX, gView);

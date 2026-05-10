@@ -1,22 +1,20 @@
 package rasterize;
 
 import model.Vertex;
-import raster.Texture;
 import raster.ZBuffer;
-import transforms.Col;
-import transforms.Vec2D;
+import shader.Shader;
 import util.Lerp;
 
 public class TriangleRasterizer {
     private final ZBuffer zBuffer;
-    private Texture texture;
+    private Shader shader;
 
     public TriangleRasterizer(ZBuffer zBuffer) {
         this.zBuffer = zBuffer;
     }
 
-    public void setTexture(Texture texture) {
-        this.texture = texture;
+    public void setShader(Shader shader) {
+        this.shader = shader;
     }
 
     public void rasterize(Vertex a, Vertex b, Vertex c) {
@@ -70,13 +68,13 @@ public class TriangleRasterizer {
             double t = dx == 0 ? 0 : (x - x1.getX()) / dx;
             Vertex pixel = lerp.lerp(x1, x2, t);
 
-            double oneOverW = 1.0 / pixel.getW();
+            double w = 1.0 / pixel.getW();
+            Vertex corrected = new Vertex(
+                    pixel.getPosition(),
+                    pixel.getColor().mul(w),
+                    pixel.getUV().mul(w));
 
-            Col color = pixel.getColor().mul(oneOverW);
-            Vec2D uv = pixel.getUV().mul(oneOverW);
-
-            Col out = texture == null ? color : texture.sample(uv.getX(), uv.getY());
-            zBuffer.setPixelWithZTest(x, y, pixel.getZ(), out);
+            zBuffer.setPixelWithZTest(x, y, pixel.getZ(), shader.getColor(corrected));
         }
     }
 }

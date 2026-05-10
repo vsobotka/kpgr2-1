@@ -4,6 +4,7 @@ import model.Part;
 import model.Vertex;
 import rasterize.LineRasterizer;
 import rasterize.TriangleRasterizer;
+import shader.Shader;
 import solid.RenderMode;
 import solid.Solid;
 import transforms.Mat4;
@@ -21,6 +22,7 @@ public class RendererSolid {
     private final int width, height;
     private final Lerp<Vertex> lerp = new Lerp<>();
     private RenderMode renderMode = RenderMode.FILL;
+    private Shader shader;
 
     public RendererSolid(LineRasterizer lineRasterizer, TriangleRasterizer triangleRasterizer,
                          Mat4 view, Mat4 proj, int width, int height) {
@@ -40,6 +42,11 @@ public class RendererSolid {
         this.proj = proj;
     }
 
+    public void setShader(Shader shader) {
+        this.shader = shader;
+        triangleRasterizer.setShader(shader);
+    }
+
     public RenderMode getRenderMode() {
         return renderMode;
     }
@@ -49,9 +56,6 @@ public class RendererSolid {
     }
 
     public void render(Solid solid) {
-        if (solid.getRenderTexture()) {
-            triangleRasterizer.setTexture(solid.getTexture());
-        }
         renderInternal(solid, solid.getModel().mul(view).mul(proj));
     }
 
@@ -103,8 +107,6 @@ public class RendererSolid {
                     break;
             }
         }
-
-        triangleRasterizer.setTexture(null);
     }
 
     private void rasterTriangle(Vertex a, Vertex b, Vertex c) {
