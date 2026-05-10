@@ -65,7 +65,7 @@ public class Controller3D {
                 w, h, Config.NEAR_CLIP, Config.FAR_CLIP
         );
         hudProj = new Mat4OrthoRH(18, 18, -10, 10)
-                .mul(new Mat4Transl(-0.75, 0.75, 0));
+                .mul(new Mat4Transl(-0.9, 0, 0));
         this.camera = createCamera();
         Mat4 view = this.camera.getViewMatrix();
         Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
@@ -133,10 +133,10 @@ public class Controller3D {
                     TransformAxis[] axes = TransformAxis.values();
                     transformAxis = axes[(transformAxis.ordinal() + 1) % axes.length];
                     redraw = true;
-                } else if (e.getKeyCode() == KeyEvent.VK_OPEN_BRACKET) {
+                } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
                     applyStep(-1);
                     redraw = true;
-                } else if (e.getKeyCode() == KeyEvent.VK_CLOSE_BRACKET) {
+                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
                     applyStep(+1);
                     redraw = true;
                 }
@@ -225,7 +225,7 @@ public class Controller3D {
         renderArrowAxis(arrowY, gView);
         renderArrowAxis(arrowZ, gView);
 
-        drawHudCaption();
+        drawHud();
 
         panel.repaint();
     }
@@ -257,11 +257,22 @@ public class Controller3D {
         return arrowX;
     }
 
-    private void drawHudCaption() {
+    private void drawHud() {
         Graphics2D g = (Graphics2D) panel.getRaster().getImage().getGraphics();
         g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         g.setColor(Color.WHITE);
-        g.drawString(transformOp.name(), 8, 16);
+
+        g.drawString("[WASD + mouse] Camera movement", 8, 20);
+
+        g.drawString("[P] Projection: " + projection.name(), 8, 60);
+        g.drawString("[M] Render mode: " + renderer.getRenderMode().name(), 8, 80);
+
+        g.drawString("[TAB] Selected solid: " + selectableSolids.get(selectedSolidIndex).getClass().getSimpleName(), 8, 120);
+
+        g.drawString("[T] Transformation operation: " + transformOp.name(), 8, 160);
+        g.drawString("[X] Transformation axis: " + transformAxis.name(), 8, 180);
+        g.drawString("[UP] Transform +", 8, 200);
+        g.drawString("[DOWN] Transform -", 8, 220);
     }
 
     private Mat4 hudView() {

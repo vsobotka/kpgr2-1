@@ -17,6 +17,7 @@ public class Window extends JFrame {
         pack();
 
         panel.setFocusable(true);
+        panel.setFocusTraversalKeysEnabled(false);
         panel.grabFocus();
     }
 
