@@ -112,6 +112,7 @@ public class Controller3D {
 
         this.light = new Sphere(new Vec3D(0, 0, 0), 0.15);
         this.light.setModel(new Mat4Transl(2, -2, 3));
+        this.light.setName("Light");
 
         selectableSolids.add(sphere);
         selectableSolids.add(cube);
@@ -325,7 +326,7 @@ public class Controller3D {
         g.drawString("[P] Projection: " + projection.name(), 8, 60);
         g.drawString("[M] Render mode: " + renderer.getRenderMode().name(), 8, 80);
 
-        g.drawString("[TAB] Selected solid: " + selectableSolids.get(selectedSolidIndex).getClass().getSimpleName(), 8, 120);
+        g.drawString("[TAB] Selected solid: " + selectableSolids.get(selectedSolidIndex).getName(), 8, 120);
         g.drawString("[C] Toggle texture", 8, 140);
 
         g.drawString("[T] Transformation operation: " + transformOp.name(), 8, 180);
