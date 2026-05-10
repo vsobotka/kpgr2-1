@@ -184,7 +184,7 @@ public class RendererSolid {
     private Vertex toScreen(Vertex v) {
         double x = (v.getX() + 1) * 0.5 * width;
         double y = (1 - v.getY()) * 0.5 * height;
-        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor(), v.getUV(), v.getOne());
+        return new Vertex(new Point3D(x, y, v.getZ()), v.getColor(), v.getUV(), v.getNormal(), v.getOne());
     }
 
     private Vertex perspDehomog(Vertex v) {
@@ -194,6 +194,7 @@ public class RendererSolid {
                 new Point3D(p.getX() * oneOverW, p.getY() * oneOverW, p.getZ() * oneOverW),
                 v.getColor().mul(oneOverW),
                 v.getUV().mul(oneOverW),
+                v.getNormal().mul(oneOverW),
                 oneOverW
         );
     }

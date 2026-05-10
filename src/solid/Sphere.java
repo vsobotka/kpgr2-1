@@ -32,7 +32,7 @@ public class Sphere extends Solid {
                 Col color = new Col((nx + 1) / 2, (ny + 1) / 2, (nz + 1) / 2);
                 double u = (double) i / M;
                 double v = (double) j / N;
-                vertexBuffer.add(new Vertex(new Point3D(x, y, z), color, new Vec2D(u, v)));
+                vertexBuffer.add(new Vertex(new Point3D(x, y, z), color, new Vec2D(u, v), new Vec3D(nx, ny, nz)));
             }
         }
 

@@ -72,7 +72,8 @@ public class TriangleRasterizer {
             Vertex corrected = new Vertex(
                     pixel.getPosition(),
                     pixel.getColor().mul(w),
-                    pixel.getUV().mul(w));
+                    pixel.getUV().mul(w),
+                    pixel.getNormal().mul(w));
 
             zBuffer.setPixelWithZTest(x, y, pixel.getZ(), shader.getColor(corrected));
         }
