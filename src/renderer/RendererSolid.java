@@ -49,10 +49,12 @@ public class RendererSolid {
     }
 
     public void render(Solid solid) {
+        triangleRasterizer.setTexture(solid.getTexture());
         renderInternal(solid, solid.getModel().mul(view).mul(proj));
     }
 
     public void renderHud(Solid solid, Mat4 hudView, Mat4 hudProj) {
+        triangleRasterizer.setTexture(solid.getTexture());
         renderInternal(solid, solid.getModel().mul(hudView).mul(hudProj));
     }
 
@@ -177,7 +179,7 @@ public class RendererSolid {
     private Vertex toScreen(Vertex v) {
         double x = (v.getX() + 1) * 0.5 * width;
         double y = (1 - v.getY()) * 0.5 * height;
-        return new Vertex(new Point3D(x, y, v.getZ(), v.getW()), v.getColor());
+        return new Vertex(new Point3D(x, y, v.getZ(), v.getW()), v.getColor(), v.getUV());
     }
 
     private Vertex perspDehomog(Vertex v) {
@@ -185,7 +187,8 @@ public class RendererSolid {
         Point3D p = v.getPosition();
         return new Vertex(
                 new Point3D(p.getX() * oneOverW, p.getY() * oneOverW, p.getZ() * oneOverW, oneOverW),
-                v.getColor().mul(oneOverW)
+                v.getColor().mul(oneOverW),
+                v.getUV().mul(oneOverW)
         );
     }
 }

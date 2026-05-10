@@ -1,6 +1,7 @@
 package controller;
 
 import config.Config;
+import raster.Texture;
 import raster.ZBuffer;
 import rasterize.LineRasterizer;
 import rasterize.LineRasterizerGraphics;
@@ -21,6 +22,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -82,6 +84,11 @@ public class Controller3D {
         this.arrowZ.setModel(new Mat4RotY(Math.toRadians(-90)));
 
         this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
+        try {
+            sphere.setTexture(new Texture("res/textures/jupiter-rect.jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.cube = new Cube(new Vec3D(0.5, 0, 0.5), 0.5);
         this.cone = new Cone(new Vec3D(-0.5, 0.3, -1), 0.5, 3);
         this.cone.setModel(new Mat4RotX(Math.toRadians(45)));

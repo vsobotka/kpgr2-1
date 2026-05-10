@@ -2,6 +2,7 @@ package solid;
 
 import model.Part;
 import model.Vertex;
+import raster.Texture;
 import transforms.Mat4;
 import transforms.Mat4Identity;
 
@@ -14,6 +15,7 @@ public abstract class Solid {
     protected final List<Integer> indexBuffer = new ArrayList<>();
     protected final List<Part> partBuffer = new ArrayList<>();
     protected Mat4 model = new Mat4Identity();
+    protected Texture texture;
 
     public List<Vertex> getVertexBuffer() {
         return vertexBuffer;
@@ -37,5 +39,13 @@ public abstract class Solid {
 
     public void setModel(Mat4 model) {
         this.model = model;
+    }
+
+    public void setTexture(Texture texture) {
+        this.texture = texture;
+    }
+
+    public Texture getTexture() {
+        return texture;
     }
 }
