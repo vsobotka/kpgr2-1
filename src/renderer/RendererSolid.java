@@ -49,12 +49,13 @@ public class RendererSolid {
     }
 
     public void render(Solid solid) {
-        triangleRasterizer.setTexture(solid.getTexture());
+        if (solid.getRenderTexture()) {
+            triangleRasterizer.setTexture(solid.getTexture());
+        }
         renderInternal(solid, solid.getModel().mul(view).mul(proj));
     }
 
     public void renderHud(Solid solid, Mat4 hudView, Mat4 hudProj) {
-        triangleRasterizer.setTexture(solid.getTexture());
         renderInternal(solid, solid.getModel().mul(hudView).mul(hudProj));
     }
 
@@ -102,6 +103,8 @@ public class RendererSolid {
                     break;
             }
         }
+
+        triangleRasterizer.setTexture(null);
     }
 
     private void rasterTriangle(Vertex a, Vertex b, Vertex c) {

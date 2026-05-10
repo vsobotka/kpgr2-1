@@ -68,7 +68,7 @@ public class Controller3D {
                 w, h, Config.NEAR_CLIP, Config.FAR_CLIP
         );
         hudProj = new Mat4OrthoRH(18, 18, -10, 10)
-                .mul(new Mat4Transl(-0.8, 0, 0));
+                .mul(new Mat4Transl(-0.8, -0.2, 0));
         this.camera = createCamera();
         Mat4 view = this.camera.getViewMatrix();
         Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
@@ -159,6 +159,10 @@ public class Controller3D {
                     redraw = true;
                 } else if (e.getKeyCode() == KeyEvent.VK_UP) {
                     applyStep(+1);
+                    redraw = true;
+                } else if (e.getKeyCode() == KeyEvent.VK_C) {
+                    Solid solid = selectableSolids.get(selectedSolidIndex);
+                    solid.toggleRenderTexture();
                     redraw = true;
                 }
 
@@ -289,11 +293,12 @@ public class Controller3D {
         g.drawString("[M] Render mode: " + renderer.getRenderMode().name(), 8, 80);
 
         g.drawString("[TAB] Selected solid: " + selectableSolids.get(selectedSolidIndex).getClass().getSimpleName(), 8, 120);
+        g.drawString("[C] Toggle texture", 8, 140);
 
-        g.drawString("[T] Transformation operation: " + transformOp.name(), 8, 160);
-        g.drawString("[X] Transformation axis: " + transformAxis.name(), 8, 180);
-        g.drawString("[UP] Transform +", 8, 200);
-        g.drawString("[DOWN] Transform -", 8, 220);
+        g.drawString("[T] Transformation operation: " + transformOp.name(), 8, 180);
+        g.drawString("[X] Transformation axis: " + transformAxis.name(), 8, 200);
+        g.drawString("[UP] Transform +", 8, 220);
+        g.drawString("[DOWN] Transform -", 8, 240);
     }
 
     private Mat4 hudView() {

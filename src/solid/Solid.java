@@ -16,6 +16,7 @@ public abstract class Solid {
     protected final List<Part> partBuffer = new ArrayList<>();
     protected Mat4 model = new Mat4Identity();
     protected Texture texture;
+    protected boolean renderTexture = true;
 
     public List<Vertex> getVertexBuffer() {
         return vertexBuffer;
@@ -47,5 +48,13 @@ public abstract class Solid {
 
     public Texture getTexture() {
         return texture;
+    }
+
+    public void toggleRenderTexture() {
+        renderTexture = !renderTexture;
+    }
+    
+    public boolean getRenderTexture() {
+        return renderTexture;
     }
 }
