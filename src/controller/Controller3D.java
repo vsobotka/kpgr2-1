@@ -7,6 +7,7 @@ import rasterize.LineRasterizerGraphics;
 import rasterize.TriangleRasterizer;
 import renderer.RendererSolid;
 import solid.Arrow;
+import solid.Cone;
 import solid.Cube;
 import solid.Solid;
 import solid.Sphere;
@@ -32,7 +33,7 @@ public class Controller3D {
     private Projection projection = Projection.PERSPECTIVE;
 
     private final Arrow arrowX, arrowY, arrowZ;
-    private final Solid sphere, cube;
+    private final Solid sphere, cube, cone;
     private final Mat4 perspProj, orthoProj;
     private final Mat4 hudProj;
     private Camera camera;
@@ -82,9 +83,11 @@ public class Controller3D {
 
         this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
         this.cube = new Cube(new Vec3D(2, 2, 0), 0.5);
+        this.cone = new Cone(new Vec3D(-2, 2, 0), 0.5, 1.2);
 
         selectableSolids.add(sphere);
         selectableSolids.add(cube);
+        selectableSolids.add(cone);
 
         initListeners();
 
