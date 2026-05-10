@@ -32,7 +32,7 @@ public class Controller3D {
     private Projection projection = Projection.PERSPECTIVE;
 
     private final Arrow arrowX, arrowY, arrowZ;
-    private final Solid sphere, sphere2, cube;
+    private final Solid sphere, cube;
     private final Mat4 perspProj, orthoProj;
     private final Mat4 hudProj;
     private Camera camera;
@@ -82,11 +82,9 @@ public class Controller3D {
 
         this.sphere = new Sphere(new Vec3D(0, 0, 0), 1);
         this.cube = new Cube(new Vec3D(2, 2, 0), 0.5);
-        this.sphere2 = new Sphere(new Vec3D(2, 2, 2), 0.5);
 
         selectableSolids.add(sphere);
         selectableSolids.add(cube);
-        selectableSolids.add(sphere2);
 
         initListeners();
 
