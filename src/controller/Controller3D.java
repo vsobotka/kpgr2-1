@@ -99,6 +99,11 @@ public class Controller3D {
 
         this.cone = new Cone(new Vec3D(-0.5, 0.3, -1), 0.5, 3);
         this.cone.setModel(new Mat4RotX(Math.toRadians(45)));
+        try {
+            cone.setTexture(new Texture("res/textures/sandstone.jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         selectableSolids.add(sphere);
         selectableSolids.add(cube);

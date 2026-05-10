@@ -4,41 +4,48 @@ import model.Part;
 import model.TopologyType;
 import model.Vertex;
 import transforms.Col;
+import transforms.Point3D;
+import transforms.Vec2D;
 import transforms.Vec3D;
 
 public class Cone extends Solid {
     private static final int M = 20;
 
     public Cone(Vec3D base, double radius, double height) {
-        Col baseCol = new Col(0.2, 0.4, 1.0);
-        Col apexCol = new Col(1.0, 0.5, 0.1);
+        Col col = new Col(1, 1, 1);
+        double bx = base.getX(), by = base.getY(), bz = base.getZ();
 
-        vertexBuffer.add(new Vertex(
-                base.getX(), base.getY(), base.getZ() + height, apexCol)); // 0 apex
-        vertexBuffer.add(new Vertex(
-                base.getX(), base.getY(), base.getZ(), baseCol)); // 1 base center
+        for (int i = 0; i < M; i++) {
+            vertexBuffer.add(new Vertex(
+                    new Point3D(bx, by, bz + height), col, new Vec2D((i + 0.5) / M, 1)));
+        }
+
+        for (int i = 0; i <= M; i++) {
+            double a = 2 * Math.PI * i / M;
+            vertexBuffer.add(new Vertex(
+                    new Point3D(bx + radius * Math.cos(a), by + radius * Math.sin(a), bz),
+                    col, new Vec2D((double) i / M, 0)));
+        }
+
+        vertexBuffer.add(new Vertex(new Point3D(bx, by, bz), col, new Vec2D(0.5, 0.5)));
 
         for (int i = 0; i < M; i++) {
             double a = 2 * Math.PI * i / M;
+            double cosA = Math.cos(a), sinA = Math.sin(a);
             vertexBuffer.add(new Vertex(
-                    base.getX() + radius * Math.cos(a),
-                    base.getY() + radius * Math.sin(a),
-                    base.getZ(),
-                    baseCol));
+                    new Point3D(bx + radius * cosA, by + radius * sinA, bz),
+                    col, new Vec2D((cosA + 1) / 2, (sinA + 1) / 2)));
         }
 
+        int sideRing = M;
+        int baseCenter = sideRing + M + 1;
+        int baseRing = baseCenter + 1;
+
         for (int i = 0; i < M; i++) {
-            int r0 = 2 + i;
-            int r1 = 2 + (i + 1) % M;
-            addIndices(0, r0, r1);
-        }
-        for (int i = 0; i < M; i++) {
-            int r0 = 2 + i;
-            int r1 = 2 + (i + 1) % M;
-            addIndices(1, r1, r0);
+            addIndices(i, sideRing + i, sideRing + i + 1);
+            addIndices(baseCenter, baseRing + (i + 1) % M, baseRing + i);
         }
 
-        partBuffer.add(new Part(TopologyType.TRIANGLES, 0, M));
-        partBuffer.add(new Part(TopologyType.TRIANGLES, M * 3, M));
+        partBuffer.add(new Part(TopologyType.TRIANGLES, 0, 2 * M));
     }
 }
