@@ -65,7 +65,7 @@ public class Controller3D {
                 w, h, Config.NEAR_CLIP, Config.FAR_CLIP
         );
         hudProj = new Mat4OrthoRH(18, 18, -10, 10)
-                .mul(new Mat4Transl(-0.9, 0, 0));
+                .mul(new Mat4Transl(-0.8, 0, 0));
         this.camera = createCamera();
         Mat4 view = this.camera.getViewMatrix();
         Mat4 proj = projection == Projection.PERSPECTIVE ? perspProj : orthoProj;
