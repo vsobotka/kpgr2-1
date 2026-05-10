@@ -27,4 +27,12 @@ public class ZBuffer {
         imageBuffer.clear();
         depthBuffer.clear();
     }
+
+    public int getWidth() {
+        return imageBuffer.getWidth();
+    }
+
+    public int getHeight() {
+        return imageBuffer.getHeight();
+    }
 }
